@@ -1,8 +1,8 @@
-// Netlify serverless function: forwards the assistant's question to OpenRouter.
-// The API key is read from the OPENROUTER_API_KEY environment variable on Netlify,
-// so it never reaches the browser.
+// Netlify serverless function: forwards the assistant's question to the Claude API.
+// The API key is read from the ANTHROPIC_API_KEY environment variable on Netlify,
+// so it never reaches the browser. The model is fixed here, so the page can't change it.
 
-const MODEL = "meta-llama/llama-3.3-70b-instruct";
+const MODEL = "claude-haiku-5-5";
 const MAX_QUESTION = 500;
 const MAX_DATA = 200000;
 
@@ -12,9 +12,9 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "OPENROUTER_API_KEY belum diatur di Netlify" }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "ANTHROPIC_API_KEY belum diatur di Netlify" }) };
   }
 
   let payload;
@@ -36,32 +36,31 @@ exports.handler = async (event) => {
     "Data dashboard (JSON): " + data;
 
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + apiKey,
-        "Content-Type": "application/json",
-        "X-Title": "Dashboard Bapperida",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
         model: MODEL,
+        max_tokens: 800,
         temperature: 0.3,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: question },
-        ],
+        system: system,
+        messages: [{ role: "user", content: question }],
       }),
     });
     if (!res.ok) {
-      return { statusCode: 502, headers, body: JSON.stringify({ error: "HTTP " + res.status + " dari OpenRouter" }) };
+      return { statusCode: 502, headers, body: JSON.stringify({ error: "HTTP " + res.status + " dari Claude API" }) };
     }
     const json = await res.json();
-    const answer = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
+    const answer = (json.content || []).map((b) => b.text || "").join("").trim();
     if (!answer) {
       return { statusCode: 502, headers, body: JSON.stringify({ error: "Respons kosong dari model" }) };
     }
-    return { statusCode: 200, headers, body: JSON.stringify({ answer: answer.trim() }) };
+    return { statusCode: 200, headers, body: JSON.stringify({ answer: answer }) };
   } catch (e) {
-    return { statusCode: 502, headers, body: JSON.stringify({ error: "Gagal menghubungi OpenRouter" }) };
+    return { statusCode: 502, headers, body: JSON.stringify({ error: "Gagal menghubungi Claude API" }) };
   }
 };
