@@ -11,7 +11,7 @@ class DCLogic {
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { tab: 'beranda', role: 'admin', jenis: 'Semua', statusF: 'semua', indId: null, docType: 'Semua', docQ: '', docId: null, bidang: 'eko', urusanId: null, draftOpen: false, ex: 0, sent: '', draft: '', answer: '', answerErr: '', answerLoading: false, flagId: null, flagStatus: {}, note: '', homeQ: '', docsP: 0, scrolled: false, hov: null, chartMode: {} };
+    this.state = { tab: 'beranda', role: 'admin', jenis: 'Semua', statusF: 'semua', indId: null, docType: 'Semua', docQ: '', docId: null, bidang: 'eko', urusanId: null, draftOpen: false, ex: 0, sent: '', draft: '', answer: '', answerErr: '', answerLoading: false, secSel: { Fakta: true, Analisis: true, Saran: true }, flagId: null, flagStatus: {}, note: '', homeQ: '', docsP: 0, scrolled: false, hov: null, chartMode: {} };
     this.heroRef = (el) => { this.heroEl = el; if (this._onHead) this._onHead(); };
     this.headRef = (el) => { this.headEl = el; };
     this.carouselRef = (el) => {
@@ -511,20 +511,32 @@ class Component extends DCLogic {
     let customBody;
     if (s.answerLoading) customBody = [sec('Catatan', ['Sedang mencari jawaban...'])];
     else if (s.answerErr) customBody = [sec('Catatan', ['Gagal menjawab: ' + s.answerErr])];
+    else if (s.answer && typeof s.answer === 'object') customBody = Object.keys(s.answer).map((k) => sec(k, s.answer[k]));
     else customBody = [sec('Fakta', [s.answer || 'Belum ada jawaban.'])];
     const chat = custom ? { q: s.sent, sections: customBody, src: [] } : EX[exIdx];
     const exChips = EX.map((e, i) => {
       const on = !custom && exIdx === i;
       return { label: e.q, pressed: on ? 'true' : 'false', bg: on ? '#E6EEF7' : '#FFFFFF', fg: on ? '#21518E' : '#1B2430', border: on ? '#21518E' : '#B7C0CC', pick: () => self.setState({ ex: i, sent: '' }) };
     });
+    const SEC_KEYS = ['Fakta', 'Analisis', 'Saran'];
     const send = () => {
       const t = (self.state.draft || '').trim();
       if (!t) return;
+      const picked = SEC_KEYS.filter((k) => self.state.secSel[k]);
+      if (!picked.length) {
+        self.setState({ sent: t, draft: '', answer: '', answerErr: 'Centang minimal satu bagian (Fakta, Analisis, atau Saran).', answerLoading: false });
+        return;
+      }
       self.setState({ sent: t, draft: '', answer: '', answerErr: '', answerLoading: true });
-      window.askAssistant(t)
+      window.askAssistant(t, picked)
         .then((reply) => self.setState({ answer: reply, answerLoading: false }))
         .catch((err) => self.setState({ answerErr: err.message, answerLoading: false }));
     };
+    const secChips = SEC_KEYS.map((k) => ({
+      label: k,
+      on: !!s.secSel[k],
+      toggle: () => { const n = Object.assign({}, self.state.secSel); n[k] = !n[k]; self.setState({ secSel: n }); },
+    }));
 
     // ---------- Pemeriksaan detail ----------
     const blankFlag = { jenis: '', title: '', ind: '', sLabel: '', refDoc: '', refPage: '', refVal: '', chkDoc: '', chkPage: '', chkVal: '', label: '', ai: '' };
@@ -635,6 +647,7 @@ class Component extends DCLogic {
 
       exChips: exChips,
       chatQ: chat.q,
+      secChips: secChips,
       chatSections: chat.sections,
       chatSrc: wrap(chat.src),
       chatHasSrc: chat.src.length > 0,

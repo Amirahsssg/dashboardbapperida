@@ -603,6 +603,12 @@
 </template>
 </div>
 </div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 13px; font-weight: 600">
+<span style="color: #4A5462">Bagian jawaban:</span>
+<template v-for="c in secChips">
+<label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><input type="checkbox" :checked="c.on" @change="c.toggle">{{c.label}}</label>
+</template>
+</div>
 <div style="display: flex; gap: 10px; flex-wrap: wrap">
 <label for="tanya" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">Pertanyaan</label>
 <input id="tanya" type="text" :value="draft" @input="onDraft" @keydown="onDraftKey" placeholder="Tanyakan tentang dokumen, indikator, atau minta draf ringkasan" style="flex: 1 1 320px; padding: 12px 14px; min-height: 48px; border: 1px solid #B7C0CC; border-radius: 10px; background: #FFFFFF; color: #1B2430">
