@@ -1,0 +1,37 @@
+body{margin:0;background:#F4F6F9;font-family:'Plus Jakarta Sans', system-ui, sans-serif;color:#1B2430}
+
+*{box-sizing:border-box}
+
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+
+button{cursor:pointer}
+
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #C88838;outline-offset:2px}
+
+a{color:#21518E}
+a:hover{color:#163A66}
+
+@media (prefers-reduced-motion: reduce){.hero-video{display:none}
+}
+
+.doc-card{perspective:1000px}
+
+.book{transform:scale(1);transition:transform .3s ease, box-shadow .3s ease;box-shadow:0 14px 24px rgba(14,36,64,.28)}
+
+.doc-card:hover .book,.doc-card:focus-within .book{transform:scale(1.1);box-shadow:0 26px 44px rgba(14,36,64,.45)}
+
+@media (prefers-reduced-motion: reduce){.book{transition:none}
+}
+
+.foot-link:hover{text-decoration:underline !important;color:#FFFFFF}
+
+.lift{transition:transform .25s ease, box-shadow .25s ease}
+
+.lift:hover,.lift:focus-visible,.lift:focus-within{transform:translateY(-6px);box-shadow:0 18px 36px rgba(14,36,64,.16)}
+
+.chart-scroll{scrollbar-width:thin}
+
+@media (prefers-reduced-motion: reduce){.lift{transition:none}
+.lift:hover,.lift:focus-within{transform:none}
+}
+
